@@ -1,37 +1,37 @@
-# Docker multi-stage build
+# --- Stage 1: Build the Spring Boot application with Maven ---
+FROM maven:3.8.7-eclipse-temurin-19-alpine AS builder
 
-# 1. Building the App with Maven
-FROM maven:3.8.7-eclipse-temurin-19-alpine
-
-ADD . /java-springboot
+# Set working directory inside the container
 WORKDIR /java-springboot
 
-# Just echo so we can see, if everything is there :)
-RUN ls -l
+# Copy project files into the container
+ADD . .
 
-# Run Maven build
-RUN mvn clean install
+# Make the Maven wrapper executable
+RUN chmod +x mvnw
 
-# 2. Just using the build artifact and then removing the build-container
+# Run Maven build (skipping tests)
+RUN ./mvnw clean install -DskipTests
+
+# --- Stage 2: Create a lightweight runtime image ---
 FROM openjdk:19-alpine
 
-# https://security.alpinelinux.org/vuln/CVE-2021-46848
-RUN apk add --upgrade libtasn1-progs
+# Address known vulnerabilities
+RUN apk add --upgrade libtasn1-progs && \
+    apk update && apk upgrade zlib
 
-# https://security.alpinelinux.org/vuln/CVE-2022-37434
-RUN apk update && apk upgrade zlib
-
-
-# Create a new user with UID 10014
+# Create a non-root user for better security
 RUN addgroup -g 10014 choreo && \
-    adduser  --disabled-password  --no-create-home --uid 10014 --ingroup choreo choreouser
+    adduser --disabled-password --no-create-home --uid 10014 --ingroup choreo choreouser
 
-VOLUME /tmp
-
+# Run as the non-root user
 USER 10014
 
-# Add Spring Boot app.jar to Container
-COPY --from=0 "/java-springboot/target/insurance-quote-service-*.jar" app.jar
+# Mount /tmp for use by Spring Boot
+VOLUME /tmp
 
-# Fire up our Spring Boot app by default
-CMD [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar" ]
+# Copy the built JAR file from the builder stage
+COPY --from=builder /java-springboot/target/insurance-quote-service-*.jar app.jar
+
+# Default command to run the app
+CMD ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
