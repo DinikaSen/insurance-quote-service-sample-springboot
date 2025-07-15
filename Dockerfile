@@ -1,37 +1,30 @@
-# --- Stage 1: Build the Spring Boot application with Maven ---
+# ---- Stage 1: Build with Maven ----
 FROM maven:3.8.7-eclipse-temurin-19-alpine AS builder
 
-# Set working directory inside the container
+# Set working directory
 WORKDIR /java-springboot
 
-# Copy project files into the container
-ADD . .
+# Copy everything into the container
+COPY . .
 
-# Make the Maven wrapper executable
-RUN chmod +x mvnw
+# Build the project without running tests
+RUN mvn clean install -DskipTests
 
-# Run Maven build (skipping tests)
-RUN ./mvnw clean install -DskipTests
-
-# --- Stage 2: Create a lightweight runtime image ---
+# ---- Stage 2: Run Spring Boot app with JDK ----
 FROM openjdk:19-alpine
 
-# Address known vulnerabilities
-RUN apk add --upgrade libtasn1-progs && \
-    apk update && apk upgrade zlib
+# Security updates (optional but good practice)
+RUN apk add --no-cache libtasn1-progs zlib
 
-# Create a non-root user for better security
+# Create a non-root user
 RUN addgroup -g 10014 choreo && \
     adduser --disabled-password --no-create-home --uid 10014 --ingroup choreo choreouser
 
-# Run as the non-root user
-USER 10014
-
-# Mount /tmp for use by Spring Boot
+USER choreouser
 VOLUME /tmp
 
-# Copy the built JAR file from the builder stage
-COPY --from=builder /java-springboot/target/insurance-quote-service-*.jar app.jar
+# Copy the built JAR from the builder stage
+COPY --from=builder /java-springboot/target/insurance-quote-service-*.jar /app.jar
 
-# Default command to run the app
+# Set default command to run the application
 CMD ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
