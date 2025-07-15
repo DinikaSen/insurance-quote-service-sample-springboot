@@ -1,30 +1,37 @@
-# ---- Stage 1: Build with Maven ----
-FROM maven:3.8.7-eclipse-temurin-19-alpine AS builder
+# Docker multi-stage build
 
-# Set working directory
+# 1. Building the App with Maven
+FROM maven:3.8.7-eclipse-temurin-19-alpine
+
+ADD . /java-springboot
 WORKDIR /java-springboot
 
-# Copy everything into the container
-COPY . .
+# Just echo so we can see, if everything is there :)
+RUN ls -l
 
-# Build the project without running tests
-RUN mvn clean install -DskipTests
+# Run Maven build
+RUN mvn clean install
 
-# ---- Stage 2: Run Spring Boot app with JDK ----
+# 2. Just using the build artifact and then removing the build-container
 FROM openjdk:19-alpine
 
-# Security updates (optional but good practice)
-RUN apk add --no-cache libtasn1-progs zlib
+# https://security.alpinelinux.org/vuln/CVE-2021-46848
+RUN apk add --upgrade libtasn1-progs
 
-# Create a non-root user
+# https://security.alpinelinux.org/vuln/CVE-2022-37434
+RUN apk update && apk upgrade zlib
+
+
+# Create a new user with UID 10014
 RUN addgroup -g 10014 choreo && \
-    adduser --disabled-password --no-create-home --uid 10014 --ingroup choreo choreouser
+    adduser  --disabled-password  --no-create-home --uid 10014 --ingroup choreo choreouser
 
-USER choreouser
 VOLUME /tmp
 
-# Copy the built JAR from the builder stage
-COPY --from=builder /java-springboot/target/insurance-quote-service-*.jar /app.jar
+USER 10014
 
-# Set default command to run the application
-CMD ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar"]
+# Add Spring Boot app.jar to Container
+COPY --from=0 "/java-springboot/target/insurance-quote-service-*.jar" app.jar
+
+# Fire up our Spring Boot app by default
+CMD [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar" ]
