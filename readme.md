@@ -75,9 +75,8 @@ Response:
 
 ### 🔸 Patch Status (PATCH)
 
-```json
 PATCH /quotes/QT003
-
+```json
 {
   "status": "IN_REVIEW"
 }
