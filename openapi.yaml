@@ -1,0 +1,162 @@
+openapi: 3.0.3
+info:
+  title: LifeQuest Premium Quote Service
+  version: 1.0.0
+  description: API to create, retrieve, update, and delete insurance premium quotes
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /quotes:
+    post:
+      summary: Create a premium quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteInput'
+            example:
+              productName: Health
+              state: CA
+              age: 35
+              coverageAmount: 75000
+              status: NEW
+      responses:
+        '200':
+          description: Created quote
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+
+    get:
+      summary: List all quotes (optional filter by product)
+      parameters:
+        - name: productName
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [Health, Auto, Life, Annuities]
+      responses:
+        '200':
+          description: List of quotes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Quote'
+
+  /quotes/{id}:
+    get:
+      summary: Get quote by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Quote found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '404':
+          description: Quote not found
+
+    patch:
+      summary: Partially update a quote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Partial fields to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+            example:
+              coverageAmount: 30000
+              status: UPDATED
+      responses:
+        '200':
+          description: Partially updated quote
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '404':
+          description: Quote not found
+
+    delete:
+      summary: Delete a quote by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Quote deleted
+        '404':
+          description: Quote not found
+
+components:
+  schemas:
+    Quote:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "1"
+        productName:
+          type: string
+          enum: [Health Insurance, Auto Insurance, Life Insurance, Annuities]
+          example: Health
+        state:
+          type: string
+          example: CA
+        age:
+          type: integer
+          example: 35
+        coverageAmount:
+          type: number
+          format: double
+          example: 75000
+        estimatedPremium:
+          type: number
+          format: double
+          example: 75000
+        status:
+          type: string
+          example: NEW
+
+    QuoteInput:
+      type: object
+      required:
+        - productName
+        - state
+        - age
+        - coverageAmount
+      properties:
+        productName:
+          type: string
+          enum: [Health Insurance, Auto Insurance, Life Insurance, Annuities]
+        state:
+          type: string
+        age:
+          type: integer
+        coverageAmount:
+          type: number
+          format: double

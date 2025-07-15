@@ -1,0 +1,49 @@
+[ {
+  "id" : "QT001",
+  "productName" : "Health",
+  "estimatedPremium" : 70.0,
+  "state" : "CA",
+  "age" : 50,
+  "coverageAmount" : 100000.0,
+  "status" : "NEW"
+}, {
+  "id" : "QT002",
+  "productName" : "Auto",
+  "estimatedPremium" : 38.0,
+  "state" : "NY",
+  "age" : 22,
+  "coverageAmount" : 25000.0,
+  "status" : "NEW"
+}, {
+  "id" : "QT003",
+  "productName" : "Life",
+  "estimatedPremium" : 67.0,
+  "state" : "FL",
+  "age" : 65,
+  "coverageAmount" : 500000.0,
+  "status" : "NEW"
+}, {
+  "id" : "QT004",
+  "productName" : "Annuities",
+  "estimatedPremium" : 60.0,
+  "state" : "TX",
+  "age" : 45,
+  "coverageAmount" : 200000.0,
+  "status" : "IN_REVIEW"
+}, {
+  "id" : "QT005",
+  "productName" : "Health Insurance",
+  "estimatedPremium" : 50.0,
+  "state" : "CA",
+  "age" : 44,
+  "coverageAmount" : 0.0,
+  "status" : "NEW"
+}, {
+  "id" : "QT006",
+  "productName" : "Health Insurance",
+  "estimatedPremium" : 50.0,
+  "state" : "CA",
+  "age" : 44,
+  "coverageAmount" : 100000.0,
+  "status" : "NEW"
+} ]

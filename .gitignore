@@ -1,0 +1,24 @@
+# macOS system files
+.DS_Store
+
+# Maven target directory
+/target/
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+*.iws
+out/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Spring Boot specific
+spring.log
+
+# Java files
+*.class
